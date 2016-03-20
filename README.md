@@ -138,7 +138,7 @@ update.onNext(["-", 1]) // -1
 
 ### Benefits
 
-* can describe arbitraryly complex action sets
+* can describe arbitrarily complex action sets
 * reducer contains a list of possible actions
 * supports nested state
 
