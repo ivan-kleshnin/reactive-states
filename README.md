@@ -201,3 +201,7 @@ update.onNext(flip(subtract)(1)) // -1
 
 * is good for any action set (maybe an overkill for simplest ones...)
 * some solution for nested state is required (see below)
+
+## TODO
+
+Approaches for nested states
