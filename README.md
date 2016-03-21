@@ -2,8 +2,7 @@
 
 **Reactive state (reducer) implementations discussed and compared.**
 
-There are a bunch of approaches actually and I'm surprised noone bothered to make such list so far.<br/>
-*"Knowledge kills inspiration"*  probably...
+There are a bunch of approaches actually and I'm surprised noone bothered to make such list so far.
 
 RxJS is used for code samples but everything is supposed to be tech agnostic.
 
