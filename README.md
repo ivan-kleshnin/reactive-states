@@ -211,24 +211,54 @@ update.onNext(flip(subtract)(1)) // -1
 
 ### Conclusion
 
-* is good for any action set (maybe an overkill for simplest ones...)
-* some solution for nested state is required (see below)
+* seems to be good for any action set (maybe an overkill for simplest ones...)
+* some solution for compound state is required (see below)
 
----
+## Complex state
 
-Now neither of patterns is structurally bound to the number of stores (one vs many).
-There can be a convention inside a community, it just does not follow naturally from our low-level perspective.
+### Approaches
 
-Additional stores can allow you to separate subscriptions thus avoiding exsessive recalculations
-(like widget redrawing every time *something irrelevant* was changed in the state...).
-At the same time additional stores are harder to serialize / track history for etc.
-So it seems an open engineering question and app specifics should drive your choice.
-And frameworks should enforce experimenting with that rather than prodive dogmatic "best practices"
-(no exact framework implied – just a sidenote).
+Now I want to emphasize that neither of patterns above determines the number of stores you're going to have.
+There can be a convention inside a community, it just does not follow naturally from that low-level perspective.
+The question of **state** representation is orthogonal to the question of **reducer** representation.
 
-## Nested state
+*It's an open question whether library can contain or predefine a state shape.
+Maybe all such libraries are rather frameworks or co-apps if you will.*
 
-Here things become really interesting. For **Elm / Redux Reducer** there is nothing special.
+Anyway, there are two fundamentally opposite approaches to represent reactive **state**.
+
+1. **1-stream state**. Keep all state together. 
+   Popularized by ClojureScript [Om](https://github.com/omcljs/om) library. In JS is used in [Baobab](https://github.com/Yomguithereal/baobab) library. [Redux](https://github.com/reactjs/redux) promotes this approach. 
+
+2. **n-stream state**. Keep state separated between reducers (also known as "atoms"). Popularized by ClojureScript [Reagent](https://github.com/reagent-project/reagent) project. [calmm-js.github.io](http://calmm-js.github.io) promotes this approach.
+   
+Both styles are perfectly valid but issues they hit are the opposite.
+If you keep all state in one place *union* operations are simple. History tracking, transactions, joins, serialize / deserialize questions... whatever requires several reducers should be easier to implement. The problems start when
+you want to subscribe on a state fragment. 
+
+Naive implementations where you stuff all the app state into a single stream fail shortly.
+You don't want to diff DOM every time state change if that state is not directly visible.
+It seems both Redux and Elm share this problem (correct me if I wrong).
+
+More sophisticated implementations allow you to subsribe on a cursor.
+Both Om and Baobab are quite complex libraries and it's an interesting question 
+whether this state split can be easily implemented.
+
+If you keep state separated (as some collection of streams) the splitting part is already solved.
+You need to address joining part. The simplest solution is just to combine reducers downstream
+[like here](https://github.com/ivan-kleshnin/cyclejs-examples/blob/master/1.5-form/src/rx.utils.js#L40-L54).
+This hovewer can lead to a state being kept in memory two (or even more) times (in different forms).
+
+Still if we can satisfy [immutable databases](https://github.com/tonsky/datascript) keeping state several times
+does not sound a game breaker.
+
+### Functional Reducers and State Loops
+
+**n-stream state** being used with **Functional Reducer** naturally produces circular dependencies 
+between actions and state streams. This is better be shown by example.
+
+Let's start with a **1-stream state** approach implemented with **Action Reducer** (as Elm / Redux do)
+where this problem does not exist.
 
 ```js
 let actions = [
@@ -241,8 +271,7 @@ let state = Observable.merge(...actions).
   ...
 ```
 
-Note that there is no need to have state for performing a `RESET`. As all state is incapsulated
-in one place it "just works".
+Note that there is no need to have state for performing a `RESET`. As all state is incapsulated in one place it "just works".
 
 For **Functional Reducer** things are getting tricky.
 
@@ -340,3 +369,7 @@ Cycle.run({
 CycleJS describes drivers as something which performs side-effects but this trick
 is perfectly valid and working. State pipes are just noop "drivers".
 No data is duplicated by looping so we shouldn't create a memory leak (proof?). 
+
+Refer to [working example](https://github.com/ivan-kleshnin/cyclejs-examples/blob/master/x.x-form/src/app.js) of this architecture if you need more details to get all the above.
+
+
