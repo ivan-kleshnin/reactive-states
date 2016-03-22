@@ -329,3 +329,6 @@ Cycle.run({
 CycleJS describes drivers as something which performs side-effects but this trick
 is perfectly valid and working. From implementaion perspective `state` is a NOOP driver (so nothing's bad).
 No data is duplicated by looping so we shouldn't create a memory leak (proof?). 
+
+Refer to [full example](https://github.com/ivan-kleshnin/cyclejs-examples/tree/master/1.5-form) if you want.
+Keep in mind that CycleJS does not yet support nested sink/source looping so I've applied some app-level hacks to make it work.
