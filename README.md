@@ -6,20 +6,6 @@ There are a bunch of approaches actually and I'm surprised noone bothered to mak
 
 RxJS is used for code samples but everything is supposed to be tech agnostic.
 
----
-
-All examples output the same
-
-```
-state: 0
-state: 1
-state: 3
-state: 6
-state: 3
-state: 1
-state: 0
-```
-
 ## Basic Reducer pattern
 
 ```js
@@ -45,6 +31,18 @@ update.onNext(-2) // -2
 update.onNext(-1) // -1
 ```
 
+```
+state: 0
+state: 1
+state: 3
+state: 6
+state: 3
+state: 1
+state: 0
+```
+
+Now what if you want to reset state to some initial (seed) value? You can't obviously `update.onNext(0)` because it basically means `s + 0`. The best thing you can do is `update.onNext((+/-)currentState)` and for more complex states it turns to become practically impossible. 
+
 ### Benefits 
 
 * the simplest one
@@ -56,7 +54,7 @@ update.onNext(-1) // -1
 
 ### Conclusion
 
-* is perfect for basic cases
+* is perfect for cases it satisfies ;)
 
 ## Action Reducer pattern
 
@@ -95,10 +93,16 @@ state.subscribe(s => console.log("state:", s))
 // TEST
 update.onNext({type: "+", value: 1}) // +1
 update.onNext({type: "+", value: 2}) // +2
-update.onNext({type: "+", value: 3}) // +3
-update.onNext({type: "-", value: 3}) // -3
 update.onNext({type: "-", value: 2}) // -2
 update.onNext({type: "-", value: 1}) // -1
+```
+
+```
+state: 0
+state: 1
+state: 3
+state: 1
+state: 0
 ```
 
 ### "Paqmind" style
@@ -129,11 +133,19 @@ state.subscribe(s => console.log("state:", s))
 // TEST
 update.onNext(["+", 1]) // +1
 update.onNext(["+", 2]) // +2
-update.onNext(["+", 3]) // +3
-update.onNext(["-", 3]) // -3
 update.onNext(["-", 2]) // -2
 update.onNext(["-", 1]) // -1
 ```
+
+```
+state: 0
+state: 1
+state: 3
+state: 1
+state: 0
+```
+
+Now what if we want to reset counter here? It's just a matter of adding a new switch branch.
 
 ### Benefits
 
@@ -143,8 +155,8 @@ update.onNext(["-", 1]) // -1
 
 ### Drawbacks
 
-* can't extend reducer you don't control (need to create new one and compose them) (expression problem)
-* fast growing if / switch statement (expression problem)
+* can't extend reducer you don't control (need to create new one and compose them i.e. expression problem)
+* reducer contains a list of possible actions (fast growing if / switch statement i.e. expression problem)
 * incidental complexity (middlemen) (data structure kinda conveys a list of possible actions already)
 * need to edit multiple files to implement one action
 
@@ -201,6 +213,9 @@ update.onNext(flip(subtract)(1)) // -1
 * is good for any action set (maybe an overkill for simplest ones...)
 * some solution for nested state is required (see below)
 
-## TODO
+---
 
-Approaches for nested states
+Now neither of patterns structurally predefines the number of stores you should have. 
+There can be a convention inside a community but still not a structural requirement. 
+
+Additional stores can allow you to separate subscriptions thus avoiding exsessive recalculations (like widget redrawing every time *something irrelevant* was changed in the state...). At the same time additional stores are harder to serialize / track history for etc. So it seems an open engineering question and app specifics should drive your choice. And frameworks should enforce experimenting with that rather than prodive dogmatic "best practices" (no exact framework implied – just a comment).
