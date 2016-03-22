@@ -41,9 +41,9 @@ state: 1
 state: 0
 ```
 
-Now what if you want to reset state to some initial (seed) value? You can't obviously `update.onNext(0)` because it basically means `s + 0`. The best thing you can do is `update.onNext((+/-)currentState)` and for more complex states it turns to become practically impossible. 
+Now what if you want to reset state to some initial (seed) value? You can't obviously `update.onNext(0)` because it basically means `s + 0`. The best thing you can do is `update.onNext((+/-)currentState)` and for more complex states it turns to become practically impossible.
 
-### Benefits 
+### Benefits
 
 * the simplest one
 
@@ -164,7 +164,7 @@ Now what if we want to reset counter here? It's just a matter of adding a new sw
 
 * Elm / Redux / "Paqmind" styles are equivalent
 * are good for basic-to-medium action sets
- 
+
 ## Functional Reducer pattern
 
 ```js
@@ -207,6 +207,7 @@ update.onNext(flip(subtract)(1)) // -1
 ### Drawbacks
 
 * open action set (can be viewed as a drabwack as well)
+* actions and state can be circulary dependent (solvable, see below)
 
 ### Conclusion
 
@@ -215,7 +216,116 @@ update.onNext(flip(subtract)(1)) // -1
 
 ---
 
-Now neither of patterns structurally predefines the number of stores you should have. 
-There can be a convention inside a community but still not a structural requirement. 
+Now neither of patterns is structurally bound to the number of stores (one vs many).
+There can be a convention inside a community, it just does not follow naturally from our low-level perspective.
 
-Additional stores can allow you to separate subscriptions thus avoiding exsessive recalculations (like widget redrawing every time *something irrelevant* was changed in the state...). At the same time additional stores are harder to serialize / track history for etc. So it seems an open engineering question and app specifics should drive your choice. And frameworks should enforce experimenting with that rather than prodive dogmatic "best practices" (no exact framework implied – just a comment).
+Additional stores can allow you to separate subscriptions thus avoiding exsessive recalculations
+(like widget redrawing every time *something irrelevant* was changed in the state...).
+At the same time additional stores are harder to serialize / track history for etc.
+So it seems an open engineering question and app specifics should drive your choice.
+And frameworks should enforce experimenting with that rather than prodive dogmatic "best practices"
+(no exact framework implied – just a sidenote).
+
+## Nested state
+
+Here things become really interesting. For **Elm / Redux Reducer** there is nothing special.
+
+```js
+let actions = [
+  Observable.of({type: ADD, value: {name: "Jack"}}),
+  Observable.of({type: RESET}),
+]
+let state = Observable.merge(...actions).
+  .startWith({type: RESET})
+  .scan(...)
+  ...
+```
+
+Note that there is no need to have state for performing a `RESET`. As all state is incapsulated
+in one place it "just works".
+
+For **Functional Reducer** things are getting tricky.
+
+```js
+let seeds = {
+  users: [] // initial value
+}
+
+let actions = [
+  Observable.of(append(user)),        // user is available here
+  Observable.of(always(seeds.users)), // seeds are available here
+]
+let state = Observable.merge(...actions).
+  .startWith(seeds.users)
+  .scan(...)
+  ...
+```
+
+So far so good. When you start to describe how to create user declaratively you meet a problem.
+
+```js
+let actions = {
+  users: {
+    create: state // but state is unavailable here... ^_^
+      .sample(intents.form.register)
+      .map((state) => state.form.output) 
+      .filter(identity) 
+  },
+}
+
+let seeds = ...
+
+let updates = {
+  users: {
+    data: Observable.merge(
+      actions.users.create.map((user) => append(user))
+    ),
+  },
+}
+
+// another state... ^_^ (syntax error)
+let state = {
+  users: {
+    data: store(seeds.users.data, updates.users.data),
+  },
+
+  form: {
+    input: ...  // raw form data (user input)
+    errors: ... // form errors
+    output: ... // real model to create (`null` until data is full-n-valid)
+  },
+}
+```
+
+That's because you have a circular [reactive dependency](https://github.com/ivan-kleshnin/dataflows).
+
+```
+intents <- actions <- updates <- state
+state   <-/
+```
+
+See the state in both left and right sides? That's it.
+
+To solve this you need to perform the same trick CycleJS does for [User-Computer interaction](https://www.youtube.com/watch?v=1zj7M1LnJV4).
+You'll utilize **laziness** to break-n-join the loop.
+
+```js
+function main({state: stateSource}) {
+  ...
+  let actions = ... // state (named `stateSource`) is available here
+  ...
+  let stateSink = ... // `updates` are available here (as before)
+
+  return {
+    state: stateSink // pass state to the wormhole
+  }
+}
+
+Cycle.run({
+  state: identity, // state is looped!
+})
+```
+
+CycleJS describes drivers as something which performs side-effects but this trick
+is perfectly valid and working. From implementaion perspective `state` is a NOOP driver (so nothing's bad).
+No data is duplicated by looping so we shouldn't create a memory leak (proof?). 
