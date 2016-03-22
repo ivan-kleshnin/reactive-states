@@ -273,7 +273,7 @@ let state = Observable.merge(...actions).
 
 Note that there is no need to have state for performing a `RESET`. As all state is incapsulated in one place it "just works".
 
-For **Functional Reducer** things are getting tricky.
+For **n** &times; **Functional Reducers** things are getting tricky.
 
 ```js
 let seeds = {
