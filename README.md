@@ -222,18 +222,19 @@ Now I want to emphasize that neither of patterns above determines the number of 
 There can be a convention inside a community, it just does not follow naturally from that low-level perspective.
 The question of **state** representation is orthogonal to the question of **reducer** representation.
 
-*It's an open question whether library can contain or predefine a state shape.
+*It's an open question whether library can contain or predefine a state shape.<br/>
 Maybe all such libraries are rather frameworks or co-apps if you will.*
 
-Anyway, there are two fundamentally opposite approaches to represent reactive **state**.
+Anyway, there are two fundamentally opposite approaches to represent **reactive state** on the app level.
 
-1. **1-stream state**. Keep all state together. 
+1. **1-stream state**. Keep all state together.<br/> 
    Popularized by ClojureScript [Om](https://github.com/omcljs/om) library. In JS is used in [Baobab](https://github.com/Yomguithereal/baobab) library. [Redux](https://github.com/reactjs/redux) promotes this approach. 
 
-2. **n-stream state**. Keep state separated between reducers (also known as "atoms"). Popularized by ClojureScript [Reagent](https://github.com/reagent-project/reagent) project. [calmm-js.github.io](http://calmm-js.github.io) promotes this approach.
+2. **n-stream state**. Keep state separated between reducers (also known as "atoms").<br/> 
+  Popularized by ClojureScript [Reagent](https://github.com/reagent-project/reagent) project. [calmm-js.github.io](http://calmm-js.github.io) promotes this approach.
    
 Both styles are perfectly valid but issues they hit are the opposite.
-If you keep all state in one place *union* operations are simple. History tracking, transactions, joins, serialize / deserialize questions... whatever requires several reducers should be easier to implement. The problems start when
+Keeping state together is beneficial for *union* operations. History tracking, transactions, joins, serialize / deserialize questions... whatever requires several reducers becomes easier. The problems emerge when
 you want to subscribe on a state fragment. 
 
 Naive implementations where you stuff all the app state into a single stream fail shortly.
@@ -245,8 +246,7 @@ Both Om and Baobab are quite complex libraries and it's an interesting question
 whether this state split can be easily implemented.
 
 If you keep state separated (as some collection of streams) the splitting part is already solved.
-You need to address joining part. The simplest solution is just to combine reducers downstream
-[like here](https://github.com/ivan-kleshnin/cyclejs-examples/blob/master/1.5-form/src/rx.utils.js#L40-L54).
+You need to address joining part. The simplest solution is just to [combine reducers downstream](https://github.com/ivan-kleshnin/cyclejs-examples/blob/master/1.5-form/src/rx.utils.js#L40-L54).
 This hovewer can lead to a state being kept in memory two (or even more) times (in different forms).
 
 Still if we can satisfy [immutable databases](https://github.com/tonsky/datascript) keeping state several times
