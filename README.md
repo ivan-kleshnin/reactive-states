@@ -163,7 +163,7 @@ Now what if we want to reset counter here? It's just a matter of adding a new sw
 ### Conclusion
 
 * Elm / Redux / "Paqmind" styles are equivalent
-* are good for basic-to-medium action sets
+* are good for basic-to-medium action sets (bigger ones?)
 
 ## Functional Reducer pattern
 
