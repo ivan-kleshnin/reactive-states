@@ -261,7 +261,7 @@ let state = Observable.merge(...actions).
   ...
 ```
 
-So far so good. When you start to describe how to create user declaratively you meet a problem.
+So far so good. When you start to describe how to register new user declaratively you meet a problem.
 
 ```js
 let actions = {
