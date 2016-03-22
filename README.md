@@ -1,6 +1,8 @@
-# Reactive state implementations
+# Reactive state implementations 
 
-**Reactive state (reducer) implementations discussed and compared.**
+**A draft article** :turtle:
+
+**Reactive state APIs and implementations discussed and compared.**
 
 There are a bunch of approaches actually and I'm surprised noone bothered to make such list so far.
 
