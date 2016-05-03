@@ -1,14 +1,21 @@
 # Reactive state implementations 
 
-**A draft article** :turtle:
+**A beta release** :turtle: 
 
 **Reactive state APIs and implementations discussed and compared.**
 
-There are a bunch of approaches actually and I'm surprised noone bothered to make such list so far.
+RxJS is used for code samples but everything is supposed to be technology agnostic.
 
-RxJS is used for code samples but everything is supposed to be tech agnostic.
+---
 
-## Basic Reducer pattern
+Reactive state is a state implemented by reducing values over time. There are two main questions to be asked for every particular library which "provides a state solution". Namely the exact implementation of reducer and the number of reducers.
+
+This two questions are completely orthogonal yet framework authors does emphasize this fact for some reason.
+Talking about "Redux architecture" the first person may have a "single store" concept in mind. The second one may imply "action-style reducers" while the third may assume a strict combination of both.
+
+Let's start with possible "reducer" architectures.
+
+## Basic Reducer 
 
 ```js
 let {add} = require("ramda")
@@ -43,7 +50,7 @@ state: 1
 state: 0
 ```
 
-Now what if you want to reset state to some initial (seed) value? You can't obviously `update.onNext(0)` because it basically means `s + 0`. The best thing you can do is `update.onNext((+/-)currentState)` and for more complex states it turns to become practically impossible.
+Now what if you want to reset state to some initial (seed) value? Obviously, you can't `update.onNext(0)` because it means `s + 0`. The best thing you can do is `update.onNext((+/-)currentState)` and you can guess how quick this will become unreasonable.
 
 ### Benefits
 
@@ -51,18 +58,18 @@ Now what if you want to reset state to some initial (seed) value? You can't obvi
 
 ### Drawbacks
 
-* fails to describe more complex action sets
-* does not support nested state
+* fails to represent all but the simplest action sets
+* fails to represent nested state
 
 ### Conclusion
 
 * is perfect for cases it satisfies ;)
 
-## Action Reducer pattern
+## Action Reducer 
 
 ### Elm style
 
-Requires static types. See Redux style for closest analogy.
+Requires static types. See Redux style for the closest analogy.
 
 ### Redux style
 
@@ -153,7 +160,12 @@ Now what if we want to reset counter here? It's just a matter of adding a new sw
 
 * can describe arbitrarily complex action sets
 * reducer contains a list of possible actions
-* supports nested state
+* can represent nested state
+* easy to log actions
+
+The most interesting benefit of this one is the ability to log actions easily.
+You just need to prepend a reducer with a logger as all you need will be there (in the pipe).
+This comes in handy for scapers where you need to log all pages you download, all documents you save, etc.
 
 ### Drawbacks
 
@@ -161,13 +173,22 @@ Now what if we want to reset counter here? It's just a matter of adding a new sw
 * reducer contains a list of possible actions (fast growing if / switch statement i.e. expression problem)
 * incidental complexity (middlemen) (data structure kinda conveys a list of possible actions already)
 * need to edit multiple files to implement one action
+* ability so split / combine reducers requires sophisticated solutions
+
+Talking about the latter. **Transducers** are a one possible solution. Yet they are 1) not well-known in JS community 2) far from being that cool as Clojure guys impose. 
+
+*(Look into the [Ramda](https://github.com/ramda/ramda/search?utf8=%E2%9C%93&q=transducer&type=Code) (or Clojure) codebases to get a proper impression of their "viral" protocol). A mess.*
+
+[Ad-hoc helpers](https://github.com/reactjs/redux/blob/master/src/combineReducers.js) are a second possible way.
+
+Both make me cry.
 
 ### Conclusion
 
 * Elm / Redux / "Paqmind" styles are equivalent
 * are good for basic-to-medium action sets (bigger ones?)
 
-## Functional Reducer pattern
+## Functional Reducer 
 
 ```js
 let {add, curry, flip, subtract} = require("ramda")
