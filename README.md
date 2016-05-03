@@ -179,14 +179,14 @@ Talking about the latter. **Transducers** are a one possible solution. Yet they 
 
 *(Look into the [Ramda](https://github.com/ramda/ramda/search?utf8=%E2%9C%93&q=transducer&type=Code) (or Clojure) codebases to get a proper impression of their "viral" protocol). A mess.*
 
-[Ad-hoc helpers](https://github.com/reactjs/redux/blob/master/src/combineReducers.js) are a second possible way.
+[Ad-hoc helpers](https://github.com/reactjs/redux/blob/master/src/combineReducers.js) are a second possibility.
 
 Both make me cry.
 
 ### Conclusion
 
-* Elm / Redux / "Paqmind" styles are equivalent
-* are good for basic-to-medium action sets (bigger ones?)
+* are good for basic-to-medium action sets (?)
+* or if you need no-brainer solution for logging
 
 ## Functional Reducer 
 
@@ -231,19 +231,15 @@ update.onNext(flip(subtract)(1)) // -1
 
 * open action set (can be viewed as a drabwack as well)
 * actions and state can be circulary dependent (solvable, see below)
+* hard to log actions (stream of functions is obscure)
 
 ### Conclusion
 
-* seems to be good for any action set (maybe an overkill for simplest ones...)
-* some solution for compound state is required (see below)
+* is appropriate for most action sets out there (?)
 
 ## Complex state
 
 ### Approaches
-
-Now I want to emphasize that neither of patterns above determines the number of stores you're going to have.
-There can be a convention inside a community, it just does not follow naturally from that low-level perspective.
-The question of **state** representation is orthogonal to the question of **reducer** representation.
 
 *It's an open question whether library can contain or predefine a state shape.<br/>
 Maybe all such libraries are rather frameworks or co-apps if you will.*
