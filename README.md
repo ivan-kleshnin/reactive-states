@@ -226,6 +226,10 @@ update.onNext(flip(subtract)(1)) // -1
 
 * open action set
 * pairs nicely with currying
+* natural composition (!)
+ 
+Update function are all of type `s -> s` so are naturally composable. 
+Nasty `combineReducers` workarounds are not required.
 
 ### Drawbacks
 
