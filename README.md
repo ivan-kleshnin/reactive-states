@@ -225,20 +225,20 @@ update.onNext(flip(subtract)(1)) // -1
 ### Benefits
 
 * open action set
-* pairs nicely with currying
 * natural composition (!)
  
-Update function are all of type `s -> s` so are naturally composable. 
+Update functions are all of type `s -> s` so are naturally composable.<br/> 
 Nasty `combineReducers` workarounds are not required.
 
 ### Drawbacks
 
-* open action set (can be viewed as a drabwack as well)
-* actions and state can be circulary dependent (solvable, see below)
+* open action set (can be also viewed as drawback)
 * hard to log actions (stream of functions is obscure)
 
 ### Conclusion
 
+* pairs nicely with currying
+* pairs nicely with lensing
 * is appropriate for most action sets out there (?)
 
 ## Complex state
