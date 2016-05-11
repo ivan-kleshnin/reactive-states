@@ -1,21 +1,19 @@
-# Reactive state implementations 
-
-**A beta release** :turtle: 
-
-**Reactive state APIs and implementations discussed and compared.**
+# Reactive states
 
 RxJS is used for code samples but everything is supposed to be technology agnostic.
 
 ---
 
-Reactive state is a state implemented by reducing values over time. There are two main questions to be asked for every particular library which "provides a state solution". Namely the exact implementation of reducer and the number of reducers.
+Reactive state is a state implemented by reducing values over time. There are two main questions to be asked for every particular library which provides a "state solution". Namely: the exact implementation of reducers and the number of them (one vs few vs many).
 
-This two questions are completely orthogonal yet framework authors does emphasize this fact for some reason.
-Talking about "Redux architecture" the first person may have a "single store" concept in mind. The second one may imply "action-style reducers" while the third may assume a strict combination of both.
+This two questions are completely orthogonal yet framework authors does not emphasize this fact enough.
+Saying "Redux architecture" the first person may have a "single store" concept in mind. The second one may imply "action-style reducers" while the third may assume a strict combination of both.
 
-Let's start with possible "reducer" architectures.
+Let's start with possible reducer implementations.
 
-## Basic Reducer 
+## Reducer implementations
+
+### Data reducer
 
 ```js
 let {add} = require("ramda")
@@ -25,7 +23,7 @@ let seed = 0 // initial value
 
 let update = new Subject() // update channel
 
-let state = update // basic reducer
+let state = update // data reducer
   .startWith(seed)
   .scan(add)
 
@@ -50,28 +48,24 @@ state: 1
 state: 0
 ```
 
-Now what if you want to reset state to some initial (seed) value? Obviously, you can't `update.onNext(0)` because it means `s + 0`. The best thing you can do is `update.onNext((+/-)currentState)` and you can guess how quick this will become unreasonable.
+Now what if you want to reset state to some initial (seed) value? Obviously, you can't `update.onNext(0)` because it means `s + 0`. The best thing you can do is `update.onNext((+/-)currentState)` and you can guess how quick this becomes unreasonable.
 
-### Benefits
+#### Benefits
 
 * the simplest one
 
-### Drawbacks
+#### Drawbacks
 
 * fails to represent all but the simplest action sets
 * fails to represent nested state
 
-### Conclusion
+#### Conclusion
 
 * is perfect for cases it satisfies ;)
 
-## Action Reducer 
+### Action Reducer 
 
-### Elm style
-
-Requires static types. See Redux style for the closest analogy.
-
-### Redux style
+#### Redux way
 
 ```js
 let {add} = require("ramda")
@@ -114,7 +108,7 @@ state: 1
 state: 0
 ```
 
-### "Paqmind" style
+#### Alternative way
 
 ```js
 let {add} = require("ramda")
@@ -156,7 +150,7 @@ state: 0
 
 Now what if we want to reset counter here? It's just a matter of adding a new switch branch.
 
-### Benefits
+#### Benefits
 
 * can describe arbitrarily complex action sets
 * reducer contains a list of possible actions
@@ -164,31 +158,22 @@ Now what if we want to reset counter here? It's just a matter of adding a new sw
 * easy to log actions
 
 The most interesting benefit of this one is the ability to log actions easily.
-You just need to prepend a reducer with a logger as all you need will be there (in the pipe).
-This comes in handy for scapers where you need to log all pages you download, all documents you save, etc.
+You just need to prepend a reducer with a logger as all you need is there (in the pipe).
+This comes in handy for scrapers where you need to log all pages you download, all documents you save, etc.
 
-### Drawbacks
+#### Drawbacks
 
-* can't extend reducer you don't control (need to create new one and compose them i.e. expression problem)
-* reducer contains a list of possible actions (fast growing if / switch statement i.e. expression problem)
+* can't extend reducer you don't control (need to create new one and compose them: expression problem)
+* reducer contains a list of possible actions (fast growing if / switch statement: expression problem)
 * incidental complexity (middlemen) (data structure kinda conveys a list of possible actions already)
-* need to edit multiple files to implement one action
-* ability so split / combine reducers requires sophisticated solutions
+* need to edit multiple files to implement one action (action & reducer files) 
 
-Talking about the latter. **Transducers** are a one possible solution. Yet they are 1) not well-known in JS community 2) far from being that cool as Clojure guys impose. 
-
-*(Look into the [Ramda](https://github.com/ramda/ramda/search?utf8=%E2%9C%93&q=transducer&type=Code) (or Clojure) codebases to get a proper impression of their "viral" protocol). A mess.*
-
-[Ad-hoc helpers](https://github.com/reactjs/redux/blob/master/src/combineReducers.js) are a second possibility.
-
-Both make me cry.
-
-### Conclusion
+#### Conclusion
 
 * are good for basic-to-medium action sets (?)
-* or if you need no-brainer solution for logging
+* or if you need a no-brainer for logging
 
-## Functional Reducer 
+### Functional Reducer 
 
 ```js
 let {add, curry, flip, subtract} = require("ramda")
@@ -222,177 +207,59 @@ update.onNext(flip(subtract)(2)) // -2
 update.onNext(flip(subtract)(1)) // -1
 ```
 
-### Benefits
+#### Benefits
 
-* open action set
-* natural composition (!)
- 
-Update functions are all of type `s -> s` so are naturally composable.<br/> 
-Nasty `combineReducers` workarounds are not required.
+* open action set (not limited by hardcoded actions)
+* composable actions (`update3 = compose(update2, update1)`)
 
-### Drawbacks
+#### Drawbacks
 
-* open action set (can be also viewed as drawback)
+* open action set (can be viewed as drawback)
 * hard to log actions (stream of functions is obscure)
 
-### Conclusion
+#### Conclusion
 
 * pairs nicely with currying
 * pairs nicely with lensing
 * is appropriate for most action sets out there (?)
 
-## Complex state
+## Derived states
 
-### Approaches
+What is **derived state**? It's a state which is produced from other state (common or derived as well).
+"So why is this not just a state? Or just a stream?" – you can ask. "Why we need additional terms besides MVC, MVI and whatnot?"
+Unfortunately, world is too complex for acronyms.
 
-*It's an open question whether library can contain or predefine a state shape.<br/>
-Maybe all such libraries are rather frameworks or co-apps if you will.*
+Form errors is an example of **derived state**. It's a state because it's renderable.
+You render input errors in the same way as input values. But there are several reasons to exclude them from the `state`.
 
-Anyway, there are two fundamentally opposite approaches to represent **reactive state** on the app level.
+1. Minimal state size is desirable for serialization (transfer, etc.)
+2. Two sources of truth (data unsync possibilities).
+3. Every action, changing state, should not forget to recalculate corresponding derived state.
+4. Previous point constitutes a partial **reactivity loss** (gross code comes back).
 
-1. **1-stream state**. Keep all state together.<br/> 
-   Popularized by ClojureScript [Om](https://github.com/omcljs/om) library. In JS is used in [Baobab](https://github.com/Yomguithereal/baobab) library. [Redux](https://github.com/reactjs/redux) promotes this approach. 
+This should detract you from idea of mixing common and derived states in a single reducer.
+What options are left? 
 
-2. **n-stream state**. Keep state separated between reducers (also known as "atoms").<br/> 
-  Popularized by ClojureScript [Reagent](https://github.com/reagent-project/reagent) project. [calmm-js.github.io](http://calmm-js.github.io) promotes this approach.
-   
-Both styles are perfectly valid but issues they hit are the opposite.
-Keeping state together is beneficial for *union* operations. History tracking, transactions, joins, serialize / deserialize questions... whatever requires several reducers becomes easier. The problems emerge when
-you want to subscribe on a state fragment. 
-
-Naive implementations where you stuff all the app state into a single stream fail shortly.
-You don't want to diff DOM every time state change if that state is not directly visible.
-It seems both Redux and Elm share this problem (correct me if I wrong).
-
-More sophisticated implementations allow you to subsribe on a cursor.
-Both Om and Baobab are quite complex libraries and it's an interesting question 
-whether this state split can be easily implemented.
-
-If you keep state separated (as some collection of streams) the splitting part is already solved.
-You need to address joining part. The simplest solution is just to [combine reducers downstream](https://github.com/ivan-kleshnin/cyclejs-examples/blob/master/1.5-form/src/rx.utils.js#L40-L54).
-This hovewer can lead to a state being kept in memory two (or even more) times (in different forms).
-
-Still if we can satisfy [immutable databases](https://github.com/tonsky/datascript) keeping state several times
-does not sound a game breaker.
-
-### Functional Reducers and State Loops
-
-**n-stream state** being used with **Functional Reducer** naturally produces circular dependencies 
-between actions and state streams. This is better be shown by example.
-
-Let's start with a **1-stream state** approach implemented with **Action Reducer** (as Elm / Redux do)
-where this problem does not exist.
+1) Derived state is a stream (not a usual but a stateful one). 
 
 ```js
-let actions = [
-  Observable.of({type: ADD, value: {name: "Jack"}}),
-  Observable.of({type: RESET}),
-]
-let state = Observable.merge(...actions).
-  .startWith({type: RESET})
-  .scan(...)
-  ...
-```
-
-Note that there is no need to have state for performing a `RESET`. As all state is incapsulated in one place it "just works".
-
-For **n** &times; **Functional Reducers** things are getting tricky.
-
-```js
-let seeds = {
-  users: [] // initial value
-}
-
-let actions = [
-  Observable.of(append(user)),        // user is available here
-  Observable.of(always(seeds.users)), // seeds are available here
-]
-let state = Observable.merge(...actions).
-  .startWith(seeds.users)
-  .scan(...)
-  ...
-```
-
-So far so good. When you start to describe how to register new user declaratively you meet a problem.
-
-```js
-let actions = {
-  users: {
-    create: state // but state is unavailable here... ^_^
-      .sample(intents.form.register)
-      .map((state) => state.form.output) 
-      .filter(identity) 
-  },
-}
-
-let seeds = ...
-
-let updates = {
-  users: {
-    data: Observable.merge(
-      actions.users.create.map((user) => append(user))
-    ),
-  },
-}
-
-// another state... ^_^ (syntax error)
-let state = {
-  users: {
-    data: store(seeds.users.data, updates.users.data),
-  },
-
-  form: {
-    input: ...  // raw form data (user input)
-    errors: ... // form errors
-    output: ... // real model to create (`null` until data is full-n-valid)
-  },
-}
-```
-
-That's because you have a circular [reactive dependency](https://github.com/ivan-kleshnin/dataflows).
-
-```
-intents <- actions <- updates <- state
-state   <-/
-```
-
-See the state in both left and right sides? That's it.
-
-To solve this you need to perform the same trick CycleJS does for [User-Computer interaction](https://www.youtube.com/watch?v=1zj7M1LnJV4).
-You'll utilize **laziness** to break-n-join the loop.
-
-```js
-function main({state: stateSource}) {
-  ...
-  let actions = ... // state (named `stateSource`) is available here
-  ...
-  let stateSink = ... // `updates` are available here (as before)
-
-  return {
-    state: stateSink // pass state to the wormhole
-  }
-}
-
-Cycle.run({
-  // loop state
-  state: {
-    users: {
-      data: identity,
-    },
-
-    form: {
-      input: identity,
-      errors: identity,
-      output: identity,
-    },
-  },
+let derived = state.map((s) => {
+  let d = ...
+  // calculate every dependency
+  return d
 })
 ```
+2) Derived state is a set of streams.
 
-CycleJS describes drivers as something which performs side-effects but this trick
-is perfectly valid and working. State pipes are just noop "drivers".
-No data is duplicated by looping so we shouldn't create a memory leak (proof?). 
+```js
+let derived = {
+  d1: state.map((s) => ...),
+  d2: state.map((s) => ...),
+}
+```
 
-Refer to [working example](https://github.com/ivan-kleshnin/cyclejs-examples/blob/master/x.x-form/src/app.js) of this architecture if you need more details to get all the above.
+In a single-stream version, `state.counter` increasing every second will trigger a recalculation of derived state every second.
+In a multi-stream version you'll have difficulties combining everything for a render. I personally prefer a second one, but both
+are appropriate in general case. 
 
 
