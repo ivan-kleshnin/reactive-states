@@ -237,7 +237,7 @@ You render input errors in the same way as input values. But there are several r
 3. Every action, changing state, should not forget to recalculate corresponding derived state.
 4. Previous point constitutes a partial **reactivity loss** (gross code comes back).
 
-This should detract you from idea of mixing common and derived states in a single reducer.
+This should detract you from the idea of mixing common and derived states in a single reducer.
 What options are left? 
 
 1) Derived state is a stream (not a usual but a stateful one). 
