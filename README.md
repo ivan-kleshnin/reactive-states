@@ -230,10 +230,10 @@ What is **derived state**? It's a state which is produced from other state (comm
 Unfortunately, world is too complex for acronyms.
 
 Form errors is an example of **derived state**. It's a state because it's renderable.
-You render input errors in the same way as input values. But there are several reasons to exclude derivables from the `state`.
+You render input errors in the same way as input values. But there are several reasons to treat them differently.
 
 1. Minimal state size is desirable for serialization (transfer, etc.)
-2. Two sources of truth (data unsync possibilities).
+2. `{data: ..., dataErrors: ...}` means two sources of truth (`x.dataErrors` vs `validate(x.data)` => data unsync possibilities).
 3. Every action, changing state, should not forget to recalculate corresponding derived state.
 4. Previous point constitutes a partial **reactivity loss** (gross code comes back).
 
