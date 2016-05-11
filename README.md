@@ -225,7 +225,7 @@ update.onNext(flip(subtract)(1)) // -1
 
 ## Derived states
 
-What is **derived state**? It's a state which is produced from other state (common or derived as well).
+What is **derived state**? It's a state which is produced from other state (common or derived as well).<br/>
 "So why is this not just a state? Or just a stream?" – you can ask. "Why we need additional terms besides MVC, MVI and whatnot?"
 Unfortunately, world is too complex for acronyms.
 
