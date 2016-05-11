@@ -230,7 +230,7 @@ What is **derived state**? It's a state which is produced from other state (comm
 Unfortunately, world is too complex for acronyms.
 
 Form errors is an example of **derived state**. It's a state because it's renderable.
-You render input errors in the same way as input values. But there are several reasons to exclude them from the `state`.
+You render input errors in the same way as input values. But there are several reasons to exclude derivables from the `state`.
 
 1. Minimal state size is desirable for serialization (transfer, etc.)
 2. Two sources of truth (data unsync possibilities).
