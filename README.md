@@ -258,7 +258,7 @@ let derived = {
 ```
 
 In a single-stream version, `state.counter` increasing every second will trigger a recalculation of derived state every second.
-In a multi-stream version you can describe reactive dependencies per-field `someFlag.debounce(10)` but passing stuff betwee functions is complicated. You can also mix-n-match approaches:
+In a multi-stream version you can describe reactive dependencies per-field `someFlag.debounce(10)` but passing stuff between functions is encomplicated. You can also mix-n-match approaches:
 
 ```js
 let derived = {          // RECORDS OF STREAMS
