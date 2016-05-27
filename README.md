@@ -233,14 +233,13 @@ Form errors is an example of **derived state**. It's a state because it's render
 You render input errors in the same way as input values. But there are several reasons to treat them differently.
 
 1. Minimal state size is desirable for serialization (transfer, etc.)
-2. `{data: ..., dataErrors: ...}` == two sources of truth (`x.dataErrors` vs `validate(x.data)`) == unsync possibilities.
-3. Every action, changing state, should not forget to recalculate corresponding derived state.
-4. Previous point constitutes a partial **reactivity loss** (gross code comes back).
+2. Keep one source of truth (avoid unsync cases like `y == f(x) /* by formula */ y != f(x) /* by fact */`.
+3. Preserve reactivity (derivables are either passive or reactive).
 
 This should detract you from the idea of mixing common and derived states in a single reducer.
 What options are left? 
 
-1) Derived state is a stream (not a usual but a stateful one). 
+1) Derived state is a stream (not usual but stateful one). 
 
 ```js
 let derived = state.map((s) => {
@@ -249,7 +248,7 @@ let derived = state.map((s) => {
   return d
 })
 ```
-2) Derived state is a set of streams.
+2) Derived state is a record of streams.
 
 ```js
 let derived = {
@@ -259,7 +258,14 @@ let derived = {
 ```
 
 In a single-stream version, `state.counter` increasing every second will trigger a recalculation of derived state every second.
-In a multi-stream version you'll have difficulties combining everything for a render. I personally prefer a second one, but both
-are appropriate in general case. 
+In a multi-stream version you can describe reactive dependencies per-field `someFlag.debounce(10)` but passing stuff betwee functions is complicated. You can also mix-n-match approaches:
+
+```js
+let derived = {          // RECORDS OF STREAMS
+  foo: fooStream,        // single-value stream
+  bar: barStream,        // ...
+  flags: state.map(...), // multi-value stream
+}
+```
 
 
