@@ -16,16 +16,13 @@ Let's start with possible reducer implementations.
 ### Data reducer
 
 ```js
-let {add} = require("ramda")
 let {Observable, Subject} = require("rx")
-
-let seed = 0 // initial value
 
 let update = new Subject() // update channel
 
-let state = update // data reducer
-  .startWith(seed)
-  .scan(add)
+let state = update 
+  .startWith(0)          // initial value
+  .scan((s, x) => s + x) // data reducer
 
 state.subscribe(s => console.log("state:", s))
 
@@ -68,18 +65,15 @@ Now what if you want to reset state to some initial (seed) value? Obviously, you
 #### Redux way
 
 ```js
-let {add} = require("ramda")
 let {Observable, Subject} = require("rx")
-
-let seed = 0 // initial value
 
 let update = new Subject() // update channel
 
 let ADD = "+"
 let SUBTRACT = "*"
 
-let state = update // action reducer
-  .startWith(seed)
+let state = update 
+  .startWith(0) 
   .scan((state, action) => {
     switch (action.type) {
       case ADD:
@@ -111,15 +105,12 @@ state: 0
 #### Alternative way
 
 ```js
-let {add} = require("ramda")
 let {Observable, Subject} = require("rx")
-
-let seed = 0 // initial value
 
 let update = new Subject() // update channel
 
-let state = update // action reducer
-  .startWith(seed)
+let state = update 
+  .startWith(0)
   .scan((state, action) => {
     switch (action[0]) {
       case "+":
@@ -188,12 +179,10 @@ let scanFn = curry((state, updateFn) => {
   }
 })
 
-let seed = 0 // initial value
-
 let update = new Subject() // update channel
 
-let state = update // action reducer
-  .startWith(seed)
+let state = update 
+  .startWith(0)
   .scan(scanFn)
 
 state.subscribe(s => console.log("state:", s))
