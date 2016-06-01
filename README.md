@@ -16,7 +16,7 @@ Let's start with possible reducer implementations.
 ### Data reducer
 
 ```js
-let {Observable, Subject} = require("rx")
+let {Subject} = require("rx")
 
 let update = new Subject() // update channel
 
@@ -65,7 +65,7 @@ Now what if you want to reset state to some initial (seed) value? Obviously, you
 #### Redux way
 
 ```js
-let {Observable, Subject} = require("rx")
+let {Subject} = require("rx")
 
 let update = new Subject() // update channel
 
@@ -105,7 +105,7 @@ state: 0
 #### Alternative way
 
 ```js
-let {Observable, Subject} = require("rx")
+let {Subject} = require("rx")
 
 let update = new Subject() // update channel
 
@@ -168,7 +168,7 @@ This comes in handy for scrapers where you need to log all pages you download, a
 
 ```js
 let {add, curry, flip, subtract} = require("ramda")
-let {Observable, Subject} = require("rx")
+let {Subject} = require("rx")
 
 // scanFn :: s -> (s -> s) -> s
 let scanFn = curry((state, updateFn) => {
