@@ -70,7 +70,7 @@ let {Subject} = require("rx")
 let update = new Subject() // update channel
 
 let ADD = "+"
-let SUBTRACT = "*"
+let SUBTRACT = "-"
 
 let state = update 
   .startWith(0) 
